@@ -3,58 +3,79 @@ using System.Collections;
 using UnityEngine;
 
 public class EnemySpawner : MonoBehaviour
-{   
-    
-    [SerializeField] private Transform player;
+{
     [SerializeField] private GameObject enemyPrefab;
-    [SerializeField] private Transform[] spawnPoints;
+    [SerializeField] private List<SpawnRoom> spawnRooms;
+    // get player for triggers to stop spawns out of doors passed.
 
-    [SerializeField] private float spawnSpeed = 5f;
-    [SerializeField] private bool spawning = true;
-    [SerializeField] private List<GameObject> currentEnemies = new List<GameObject>();
+    [SerializeField] private int enemiesPerWave = 4;
+    [SerializeField] private float timeBetweenSpawns = 0.5f;
+    [SerializeField] private float timeBetweenWaves = 0.5f;
+    [SerializeField] private int totalWaves = 10;
+
+    private int currentWave = 0;
+    [SerializeField] private Transform player;
     
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        StartCoroutine(EnemySpawnOnProgress());
+        StartCoroutine(SpawnWave());
     }
 
-    // Update is called once per frame
-    void Update()
+    private IEnumerator SpawnWave()
     {
-        
-    }
-
-    IEnumerator EnemySpawnOnProgress()
-    {
-        while (spawning)
+        for (int i = 0; i < enemiesPerWave; i++)
         {
-            yield return new WaitUntil(() => currentEnemies.Count == 0);
 
-            float progress = player.position.z;
-            int enemiesThisWave = Mathf.Clamp(Mathf.FloorToInt(progress / 20f) + 1, 1, 4);
-
-            currentEnemies.Clear();
-
-            for (int i = 0; i < enemiesThisWave; i++)
+            Transform spawnPoint = GetClosestValidSpawnPoint();
+            if (spawnPoint != null)
             {
-                int spawnIndex = Random.Range(0, spawnPoints.Length);
-                Instantiate(enemyPrefab, spawnPoints[spawnIndex].position, Quaternion.identity);
+                Instantiate(enemyPrefab, spawnPoint.position, spawnPoint.rotation);
             }
 
-            yield return new WaitForSeconds(spawnSpeed);
+            yield return new WaitForSeconds(timeBetweenSpawns);
+        }
+
+        yield return new WaitUntil(() => EnemyManager.instance.activeEnemies.Count == 0);
+       
+        currentWave++;
+        if (currentWave < totalWaves)
+        {
+            yield return new WaitForSeconds(timeBetweenWaves);
+            StartCoroutine(SpawnWave());
         }
     }
 
-    bool AllEnemiesAreDead()
+    private Transform GetClosestValidSpawnPoint()
     {
-        currentEnemies.RemoveAll(enemyPrefab => enemyPrefab == null);
+        Transform closestPoint = null;
+        float minDistance = Mathf.Infinity;
 
-        return currentEnemies.Count == 0;
+        foreach(var room in spawnRooms)
+        {
+            if (!room.isActive) continue;
+
+            Transform candidate = room.GetClosestSpawnPoint(player.position);
+            if (candidate != null)
+            {
+                float dist = Vector3.Distance(candidate.position, player.position);
+                if (dist < minDistance)
+                {
+                    minDistance = dist;
+                    closestPoint = candidate;
+                    
+                }
+            }
+        }
+
+        Debug.Log("ClosestSpawnRoom is " + closestPoint.name);
+        return closestPoint;
     }
 
-    public void StopSpawning()
+    public void DeactivateRoom(SpawnRoom room)
     {
-        spawning = false;
+        room.isActive = false;
     }
+
+
 }

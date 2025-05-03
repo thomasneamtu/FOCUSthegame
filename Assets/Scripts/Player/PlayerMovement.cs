@@ -1,3 +1,4 @@
+using UnityEditor.Build;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
@@ -7,8 +8,11 @@ public class PlayerMovement : MonoBehaviour
     public float moveSpeed = 2.5f;
     public float acceleration = 5f;
     public float rotationSpeed = 10f;
-
+    [SerializeField] private float gravity = -9.81f;
+    public bool isGrounded = true;
     private Vector3 currentVelocity;
+
+
     [SerializeField] private CharacterController controller;
     [SerializeField] private Transform cam;
     [SerializeField] private Animator animator;
@@ -47,8 +51,17 @@ public class PlayerMovement : MonoBehaviour
         }
 
         controller.Move(currentVelocity * Time.deltaTime);
-    }
 
+        if(!controller.isGrounded)
+        {
+            currentVelocity.y += gravity * Time.deltaTime;
+        }
+        else
+        {
+            currentVelocity.y = -5f;
+        }
+
+    }
 
     public static void RotateToward(Vector3 targetPos, Transform self, float speed = 10f)
     {

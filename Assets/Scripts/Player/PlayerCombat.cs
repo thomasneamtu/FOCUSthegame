@@ -1,32 +1,46 @@
 using UnityEngine.Events;
 using UnityEngine;
+using Unity.Mathematics;
+using Unity.VisualScripting;
+using System.Runtime.CompilerServices;
 
 public class PlayerCombat : MonoBehaviour
 {
     [SerializeField] private Animator animator;
     [SerializeField] private Transform targetEnemy;
 
-    private float targetRefresh = 0.2f;
-    private float targetUpdate = 0f;
+    
+
+    [Header("Health Settings")]
+    public int health = 10;
 
     [Header("ComboInfo")]
     [SerializeField] private int hCombo = 0;
     [SerializeField] float comboResetTimer = 1.0f;
     [SerializeField] float hLast;
-
     [SerializeField] private int jCombo = 0;
     [SerializeField] private float jLast;
+    private float targetRefresh = 0.1f;
+    private float targetUpdate = 0.1f;
 
-    [SerializeField] private int kCombo = 0;
-    [SerializeField] private float kLast;
 
-    [SerializeField] private int lCombo = 0;
-    [SerializeField] private float lLast;
+    /*
+    [Header("SphereCast")]
+    [SerializeField] public LayerMask targetLayer;
+    [SerializeField] private float checkArea = 1f;
+    [SerializeField] private float punchForce = 5f;
+    [SerializeField] private float kickForce = 10f;
+    [SerializeField] private Transform rFistCast;
+    [SerializeField] private Transform lFistCast;
+    [SerializeField] private Transform rFootCast;
+    [SerializeField] private Transform lFootCast;
+    */
 
     void Start()
     {
         animator = GetComponent<Animator>();
     }
+
     void Update()
     {
         targetEnemy = FindClosestEnemy();
@@ -35,15 +49,95 @@ public class PlayerCombat : MonoBehaviour
         {
             PlayerMovement.RotateToward(targetEnemy.position, transform);
         }
+        else
+        {
+            PlayerMovement.RotateToward(Vector3.forward, transform);
+        }
 
         ClosestTargetUpdate();
 
         HandleCombo("h", ref hCombo, ref hLast);
         HandleCombo("j", ref jCombo, ref jLast);
-        HandleCombo("k", ref kCombo, ref kLast);
-        HandleCombo("l", ref lCombo, ref lLast);
     }
 
+    /*
+    public void AttackCast(Vector3 punchDirection) //WIP
+    {
+        Vector3 rfistBeam = rFistCast.position;
+        Vector3 lfistBeam = lFistCast.position;
+        Vector3 rfootBeam = rFootCast.position;
+        Vector3 lfootBeam = lFootCast.position;
+
+        RaycastHit hit;
+
+        if (Physics.SphereCast(rfistBeam, checkArea, punchDirection, out hit, targetLayer))
+        {
+            Rigidbody hitRigidbody = hit.rigidbody;
+            
+            if(hitRigidbody != null)
+            {
+                Debug.Log("RigidBody Hit!");
+                hitRigidbody.AddForce(punchDirection * punchForce, ForceMode.Impulse);
+            }
+        }
+
+        if (Physics.SphereCast(lfistBeam, checkArea, punchDirection, out hit, targetLayer))
+        {
+            Rigidbody hitRigidbody = hit.rigidbody;
+
+            if(hitRigidbody != null)
+            {
+                Debug.Log("RigidBody Hit!");
+                hitRigidbody.AddForce(punchDirection * punchForce, ForceMode.Impulse);
+            }
+        }
+
+        if(Physics.SphereCast(rfootBeam, checkArea, punchDirection, out hit, targetLayer))
+        {
+            Rigidbody hitRigidbody = hit.rigidbody;
+
+            if(hitRigidbody != null)
+            {
+                Debug.Log("RigidBody Hit!");
+                hitRigidbody.AddForce(punchDirection * kickForce, ForceMode.Impulse);
+            }
+        }
+
+        if(Physics.SphereCast(lfootBeam, checkArea, punchDirection, out hit, targetLayer))
+        {
+            Rigidbody hitRigidbody = hit.rigidbody;
+
+            if(hitRigidbody != null)
+            {
+                Debug.Log("RigidBody Hit!");
+                hitRigidbody.AddForce(punchDirection * kickForce, ForceMode.Impulse);
+            }
+        }
+
+    }
+    */
+
+    public void OnTriggerEnter(Collider collision)
+    {
+        if (collision.CompareTag("EnemyHD"))
+        {
+            animator.SetTrigger("Hit");
+            health--;
+
+            //camerashake, add dazed effect
+        }
+    }
+
+    public void OnPlayerDeath()
+    {
+        if (health <= 0)
+        {
+            Destroy(gameObject);
+            //GameOver Cutscene or just G.O screen for now
+        }
+    }
+
+    #region Combat
     private void ClosestTargetUpdate()
     {
         if(Time.time >= targetUpdate)
@@ -56,6 +150,8 @@ public class PlayerCombat : MonoBehaviour
             {
                 targetEnemy = newTarget;
             }
+
+           
         }
     }
     private void HandleCombo(string key, ref int Combo, ref float Last)
@@ -108,10 +204,60 @@ public class PlayerCombat : MonoBehaviour
     }
     public void ResetComboTriggers()
     {
-        string[] triggers = { "H1", "H2", "H3", "H4", "J1", "J2", "J3", "J4", "K1", "K2", "K3", "K4", "L1", "L2", "L3", "L4" };
+        string[] triggers = { "H1", "H2", "H3", "H4", "J1", "J2", "J3", "J4" };
         foreach (var t in triggers)
         {
             animator.ResetTrigger(t);
         }
     }
+    #endregion
+
+    #region Animation Events
+    [Header("Colliders")]
+    [SerializeField] private GameObject rightFootCollider;
+    [SerializeField] private GameObject leftFootCollider;
+    [SerializeField] private GameObject leftHandCollider;
+    [SerializeField] private GameObject rightHandCollider;
+
+    void EnableColliderRF()
+    {
+        rightFootCollider.SetActive(true);
+    }
+
+    void DisableColliderRF()
+    {
+        rightFootCollider.SetActive(false);
+    }
+
+    void EnableColliderLF()
+    {
+        leftFootCollider.SetActive(true);
+    }
+
+    void DisableColliderLF()
+    {
+        leftFootCollider.SetActive(false);
+    }
+
+    void EnableColliderRH()
+    {
+        rightHandCollider.SetActive(true);
+    }
+    void DisableColliderRH()
+    {
+        rightHandCollider.SetActive(false);
+    }
+    void EnableColliderLH()
+    {
+        leftHandCollider.SetActive(true);
+    }
+    void DisableColliderLH()
+    {
+        leftHandCollider.SetActive(false);
+    }
+
+
+
+
+    #endregion
 }
