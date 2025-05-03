@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.AI;
 using Unity.Cinemachine;
 using UnityEngine.Experimental.AI;
-using JetBrains.Annotations;
 
 public class Enemy : MonoBehaviour
 {
@@ -30,8 +29,6 @@ public class Enemy : MonoBehaviour
 
     [Header("EnemyAI Settings")]
     [SerializeField] private float attackRange = 1.5f;
-    [SerializeField] private float attackCooldown = 3f;
-    private float lastAttackTime = -Mathf.Infinity;
     private bool isDead = false;
 
     //[SerializeField] private float attackCoolDown = 2f; maybe for WaitAndStrafe?
@@ -121,8 +118,6 @@ public class Enemy : MonoBehaviour
             Vector3 launchForce = (transform.position - player.position).normalized * 165f;
             closestRb.AddForce(launchForce, ForceMode.Impulse);
         }
-
-         
     }
 
     public void TakeDamage(int amount)
@@ -161,19 +156,6 @@ public class Enemy : MonoBehaviour
         }
     }
 
-    /*
-    public void TriggerRigidbody(Vector3 hitForce, Vector3 hitPoint)
-    {
-        EnableRagdoll();
-
-        Rigidbody hitRigidbody = FindHitRigidbody(hitPoint);
-
-        Vector3 clampedForce = Vector3.ClampMagnitude(hitForce, 1f);
-
-        hitRigidbody.AddForceAtPosition(clampedForce, hitPoint, ForceMode.Impulse);
-
-    }
-    */
      public Rigidbody FindHitRigidbody(Vector3 hitPoint)
     {
         Rigidbody closest = null;
@@ -261,23 +243,13 @@ public class Enemy : MonoBehaviour
     IEnumerator Attack()
     {
         if (isDead) yield break;
-       
-        if(Time.time - lastAttackTime < attackCooldown)
-        {
-
-            yield return null;
-            currentState = State.Approaching;
-            yield break;
-
-        }
-        lastAttackTime = Time.time;
+        Debug.Log($"{currentState}");
+        transform.LookAt(player);
 
         ResetAnimationBools();
-        transform.LookAt(player);
-        Debug.Log($"{currentState}");
+       
         animator.SetBool("Attacking", true);
 
-        yield return new WaitForSeconds(1f);
         
         currentState = State.Approaching;
     }
