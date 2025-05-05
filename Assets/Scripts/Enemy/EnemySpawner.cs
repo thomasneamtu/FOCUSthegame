@@ -5,10 +5,10 @@ using UnityEngine;
 public class EnemySpawner : MonoBehaviour
 {
     [SerializeField] private GameObject enemyPrefab;
-    [SerializeField] private List<SpawnRoom> spawnRooms;
+    [SerializeField] private List<SpawnRoom> enemySpawnRooms;
     // get player for triggers to stop spawns out of doors passed.
 
-    [SerializeField] private int enemiesPerWave = 4;
+    [SerializeField] private int enemiesPerWave;
     [SerializeField] private float timeBetweenSpawns = 0.5f;
     [SerializeField] private float timeBetweenWaves = 0.5f;
     [SerializeField] private int totalWaves = 10;
@@ -27,12 +27,14 @@ public class EnemySpawner : MonoBehaviour
         for (int i = 0; i < enemiesPerWave; i++)
         {
 
-            Transform spawnPoint = GetClosestValidSpawnPoint();
-            if (spawnPoint != null)
+            Transform spawnPoint = GetClosestValidSpawnPoint(enemySpawnRooms);
+            if (spawnPoint == null)
             {
-                Instantiate(enemyPrefab, spawnPoint.position, spawnPoint.rotation);
+                Debug.Log("No Spawns Found, Stopping Spawns");
+                yield break;
             }
 
+            Instantiate(enemyPrefab, spawnPoint.position, spawnPoint.rotation);
             yield return new WaitForSeconds(timeBetweenSpawns);
         }
 
@@ -46,14 +48,18 @@ public class EnemySpawner : MonoBehaviour
         }
     }
 
-    private Transform GetClosestValidSpawnPoint()
+
+    private Transform GetClosestValidSpawnPoint(List<SpawnRoom> SpawnRoomsCheck)
     {
         Transform closestPoint = null;
         float minDistance = Mathf.Infinity;
+        bool hasActiveRooms = false;
 
-        foreach(var room in spawnRooms)
+        foreach(var room in SpawnRoomsCheck)
         {
             if (!room.isActive) continue;
+
+            hasActiveRooms = true;
 
             Transform candidate = room.GetClosestSpawnPoint(player.position);
             if (candidate != null)
@@ -63,12 +69,22 @@ public class EnemySpawner : MonoBehaviour
                 {
                     minDistance = dist;
                     closestPoint = candidate;
-                    
                 }
             }
+
         }
 
-        Debug.Log("ClosestSpawnRoom is " + closestPoint.name);
+        if (!hasActiveRooms)
+        {
+            Debug.LogWarning("No SpawnRooms Remain");
+            return null;
+        }
+
+        if(closestPoint == null)
+        {
+            Debug.LogWarning("No SpawnRooms Found");
+        }
+
         return closestPoint;
     }
 

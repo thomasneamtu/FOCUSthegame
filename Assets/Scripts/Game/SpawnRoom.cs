@@ -25,6 +25,5 @@ public class SpawnRoom : MonoBehaviour
         }
 
         return closest;
-        
     }
 }

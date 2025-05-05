@@ -3,16 +3,18 @@ using UnityEngine;
 using Unity.Mathematics;
 using Unity.VisualScripting;
 using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 
 public class PlayerCombat : MonoBehaviour
 {
     [SerializeField] private Animator animator;
     [SerializeField] private Transform targetEnemy;
-
-    
+    [SerializeField] private GameManager deathEvent;
+    [SerializeField] private Transform endDoor;
 
     [Header("Health Settings")]
-    public int health = 10;
+    public int health = 5;
+    [SerializeField] private GameObject healthUIEffect;
 
     [Header("ComboInfo")]
     [SerializeField] private int hCombo = 0;
@@ -51,8 +53,10 @@ public class PlayerCombat : MonoBehaviour
         }
         else
         {
-            PlayerMovement.RotateToward(Vector3.forward, transform);
+            PlayerMovement.RotateToward(endDoor.position, transform);
         }
+
+       
 
         ClosestTargetUpdate();
 
@@ -121,20 +125,37 @@ public class PlayerCombat : MonoBehaviour
     {
         if (collision.CompareTag("EnemyHD"))
         {
-            animator.SetTrigger("Hit");
-            health--;
+            int damage = 1;
+            TakeDamage(damage);
 
-            //camerashake, add dazed effect
+            animator.SetTrigger("Hit");
+            //camerashake, add dazed effect !!
         }
     }
 
-    public void OnPlayerDeath()
+
+    public void TakeDamage(int amount)
     {
+        health -= amount;
+
+        if(health <= 2)
+        {
+            healthUIEffect.SetActive(true);
+        }
+        else
+        {
+            healthUIEffect.SetActive(false);
+        }
+
         if (health <= 0)
         {
-            Destroy(gameObject);
-            //GameOver Cutscene or just G.O screen for now
+            OnPlayerDeath();
         }
+    }
+        
+    public void OnPlayerDeath()
+    {
+        deathEvent.OnPlayerDead.Invoke();
     }
 
     #region Combat

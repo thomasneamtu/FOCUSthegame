@@ -1,12 +1,19 @@
 using UnityEngine;
-
+using UnityEngine.UI;
+using TMPro;
 public class FocusMode : MonoBehaviour
 {
     [SerializeField] private float focusBuildRate = 20f;
     [SerializeField] private float focusMeter = 0f;
     [SerializeField] private float focusDuration = 10f;
+    [SerializeField] private PlayerCombat playerHealth;
 
-    public bool isFocusActive { get; private set; } = false;    
+    [Header("UI Settings")]
+    [SerializeField] private Image focusRadialImage;
+    [SerializeField] private TMP_Text focusText;
+    [SerializeField] private Image keycodeImage;
+    [SerializeField] private GameObject focusEffect;
+    public bool isFocusActive { get; private set; } = false;
     public bool isFocusReady = false;
     private float focusTimer = 0f;
 
@@ -29,26 +36,41 @@ public class FocusMode : MonoBehaviour
         {
             FocusDurationCountdown();
         }
+
+
+
     }
 
-   private void BuildFocusMeter()
+    private void BuildFocusMeter()
     {
-        if(focusMeter < 100f)
+        if (focusMeter < 100f)
         {
             focusMeter += focusBuildRate * Time.deltaTime;
 
-            if(focusMeter >= 100f)
+            if (focusMeter >= 100f)
+            {
+                focusText.color = Color.white; // glow effect?
+                keycodeImage.color = Color.white;
+            }
+
+            if (focusMeter >= 100f)
             {
                 focusMeter = 100f;
                 isFocusReady = true;
                 Debug.Log("FOCUS. Ready!");
-
-                //Animation on the UI Meter
-                 
             }
+
+            UpdateFocusUI();
+
         }
     }
 
+
+    private void UpdateFocusUI()
+    {
+        float fill = Mathf.Clamp01(focusMeter / 100f);
+        focusRadialImage.fillAmount = fill;
+    }
 
     private void FocusActivate()
     {
@@ -59,6 +81,12 @@ public class FocusMode : MonoBehaviour
             isFocusReady = false;
             focusTimer = focusDuration;
 
+            focusRadialImage.fillAmount = 0f;
+            focusText.color = Color.gray;
+            keycodeImage.color = Color.gray;
+            focusEffect.SetActive(true);
+
+            playerHealth.health = 5;
             Debug.Log("FOCUS. Activated!");
 
         }
@@ -68,6 +96,11 @@ public class FocusMode : MonoBehaviour
     {
         isFocusActive = false;
         focusMeter = 0f;
+        isFocusReady = false;
+
+        focusEffect.SetActive(false);
+
+       
 
         Debug.Log("FOCUS. Lost!");
     }
@@ -75,6 +108,8 @@ public class FocusMode : MonoBehaviour
     private void FocusDurationCountdown()
     {
         focusTimer -= Time.deltaTime;
+
+        // could have UI meter respond here, giving clear indicator that focusmode is done.
 
         if (focusTimer <= 0f)
         {

@@ -1,4 +1,4 @@
-using UnityEditor.Build;
+
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
@@ -46,7 +46,7 @@ public class PlayerMovement : MonoBehaviour
         }
         else
         {
-            // Decelerate to stop
+            
             currentVelocity = Vector3.Lerp(currentVelocity, Vector3.zero, acceleration * Time.deltaTime);
         }
 
