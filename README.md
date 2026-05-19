@@ -1,4 +1,4 @@
-This is Focus. A current WIP Combat Game.
+This is Focus.
 
 The main thing took from this solo project and what I REALLY enjoyed was the use of Animations and how they flow together, creating a animation tree and mixing the animations together to create a seamless combo with each button press.
 
@@ -9,13 +9,14 @@ Some WIP looks at the development of the Combat System
 
 ![Work-In-Progress-Focus](https://github.com/user-attachments/assets/b897f221-754b-402a-b892-187c8e3f7533)
 
-A challenge I faced while making this was the activating of the fist collider so it would deal damage, when I started the combat was nice but if i just stood there it would knockout my enemies, going within the animations and keyframing the activation and deactivation of the hit collider,
+Some Difficulty I found while developing was within the difficulty, pace and engagement. Scripting triggers within the level to keep combat flow precise and consistent for the player as well as not overwhelming the player with a ton of foes. Another challenge was
+activating of the fist collider so it would deal damage, when I started the combat was nice but if i just stood there it would knockout my enemies, going within the animations and keyframing the activation and deactivation of the hit collider,
 on both the player and the enemy was a tough task and very tedious yet the result is exactly what I was looking for.
 
 I love ragdoll within video games and what they bring to the table, seeing a body go flying is hilarious yet gives your a bit of a power trip I think can be intoxicating while playing a game
 I really wanted this game to feel super flowy and rewarding and its somewhat of a tech demo for myself for a bit of combat.
 
-Enjoy my personal capstone project!
+Enjoy my personal capstone project from my Unity Game Development certificate.
 
 
 
